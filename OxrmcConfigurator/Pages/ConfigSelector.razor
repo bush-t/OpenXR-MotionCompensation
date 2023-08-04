@@ -1,0 +1,86 @@
+﻿@using OxrmcConfigurator.Model
+
+@inject ConfigService ConfigService;
+
+<MudSelect T="ConfigItem"
+           ValueChanged="OnValueChanged"
+           Label="Configuration"
+           Variant="Variant.Filled"
+           AnchorOrigin="Origin.BottomCenter">
+	@foreach (ConfigItem app in _applicationsList)
+	{
+		<MudSelectItem Value="@app" />
+	}
+</MudSelect>
+
+@if (SelectedItem is not null)
+{
+	<br/>
+	<MudAlert Severity="Severity.Info">@(SelectedItem.name) was selected</MudAlert>
+}
+
+@code {
+	private ConfigItem? SelectedItem { get; set; }
+	private List<ConfigItem> _applicationsList = new();
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		_applicationsList = GetSortedNames();
+		if (_applicationsList.Any())
+			SelectedItem = _applicationsList[0];
+		// TODO: preselect Default in MudSelect
+	}
+
+	private List<ConfigItem> GetSortedNames()
+	{
+		List<string> nameList = ConfigService.GetAppNames();
+		for (int i = 0; i < nameList.Count; i++)
+		{
+			if (nameList[i].Equals("OpenXR-MotionCompensation"))
+				nameList.RemoveAt(i);
+		}
+		List<ConfigItem> appList = nameList.Select(name => new ConfigItem(name)).ToList().OrderBy(a => a.displayName).ToList();
+		appList.Insert(0, new ConfigItem("OpenXR-MotionCompensation"));
+		return appList;
+	}
+
+	// TODO: update list on delete and add refresh button
+
+	private void OnValueChanged(ConfigItem selected)
+	{
+		SelectedItem = selected;
+		// TODO: propagate selection
+	}
+
+	public class ConfigItem
+	{
+		public ConfigItem(string configName)
+		{
+			name = configName;
+			displayName = GetDisplayName(configName);
+		}
+
+		private static string GetDisplayName(string configName)
+		{
+			if (configName == "OpenXR-MotionCompensation")
+				return "Default";
+			if (configName.StartsWith("OpenComposite_"))
+				return configName["OpenComposite_".Length..] + " (OC)";
+			return configName;
+		}
+
+		public readonly string name;
+		public readonly string displayName;
+
+		public override bool Equals(object? o)
+		{
+			var other = o as ConfigItem;
+			return other?.name == name;
+		}
+
+		public override int GetHashCode() => name?.GetHashCode() ?? 0;
+
+		public override string ToString() => displayName;
+	}
+}

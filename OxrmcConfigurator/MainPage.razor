@@ -1,14 +1,45 @@
-<h1>Main Page</h1>
+@inherits LayoutComponentBase
 
-<p>Current count: @currentCount</p>
+@inject ConfigService ConfigService;
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<MudThemeProvider @ref="_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+	<MudAppBar Elevation="1">
+		<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+		<MudText Typo="Typo.h5" Class="ml-3">OXRMC Configurator</MudText>
+		<MudSpacer />
+		<MudIconButton @onclick="ToggleDark" Icon="@ModeIcon"/>
+	</MudAppBar>
+	<MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+		<NavMenu/>
+	</MudDrawer>
+	<MudMainContent>
+		<ConfigSelector/>
+	</MudMainContent>
+</MudLayout>
 
 @code {
-	private int currentCount = 0;
+	private bool _isDarkMode;
+	private MudThemeProvider _mudThemeProvider = new();
+	private string ModeIcon => _isDarkMode ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode;
+	private bool _drawerOpen = false;
+	private void ToggleDark() => _isDarkMode = !_isDarkMode;
 
-	private void IncrementCount()
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		currentCount++;
+		if (firstRender)
+		{
+			_isDarkMode = await _mudThemeProvider.GetSystemPreference();
+			StateHasChanged();
+		}
+	}
+
+	void DrawerToggle()
+	{
+		_drawerOpen = !_drawerOpen;
 	}
 }

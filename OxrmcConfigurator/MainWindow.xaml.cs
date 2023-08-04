@@ -13,15 +13,40 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using MudBlazor.Services;
+using OxrmcConfigurator.Model;
 
 namespace OxrmcConfigurator;
 public partial class MainWindow : Window
 {
     public MainWindow()
     {
-        InitializeComponent();
+        using var serilog = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
+        Log.Logger = serilog;
+        var loggerFactory = new LoggerFactory()
+	        .AddSerilog(serilog);
+        Microsoft.Extensions.Logging.ILogger logger = loggerFactory.CreateLogger("Logger");
+
+		AppDomain.CurrentDomain.UnhandledException += (sender, error) =>
+        {
+#if DEBUG
+            MessageBox.Show(error.ExceptionObject.ToString(), caption: "Error");
+#else
+            MessageBox.Show(text: "An error has occurred.", caption: "Error");
+#endif
+
+            // Log the error information (error.ExceptionObject)
+        };
+
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddWpfBlazorWebView();
-        Resources.Add("services", serviceCollection.BuildServiceProvider());
+        serviceCollection.AddMudServices();
+        serviceCollection.AddSingleton<ConfigService>();
+        
+		Resources.Add("services", serviceCollection.BuildServiceProvider());
     }
 }

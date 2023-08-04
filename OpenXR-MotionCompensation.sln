@@ -29,7 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configurat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MmfReader", "MmfReader\MmfReader.csproj", "{54A184FF-D0F6-44E8-90C9-4097561C5EB9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OxrmcConfigurator", "OxrmcConfigurator\OxrmcConfigurator.csproj", "{A6C16017-AFDD-4038-B2A1-DC8996D0DC1F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OxrmcConfigurator", "OxrmcConfigurator\OxrmcConfigurator.csproj", "{A6C16017-AFDD-4038-B2A1-DC8996D0DC1F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
