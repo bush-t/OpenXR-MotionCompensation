@@ -1,0 +1,17 @@
+﻿<MudPaper>
+	<h1>@SelectedConfig?.name</h1>
+</MudPaper>
+
+@code {
+
+	[CascadingParameter]
+	private ConfigItem? SelectedConfig { get; set; }
+
+	[CascadingParameter]
+	private ConfigSet? Config { get; set; }
+
+	protected override void OnInitialized()
+	{
+		bool test = true;
+	}
+}

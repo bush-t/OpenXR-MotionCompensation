@@ -1,0 +1,25 @@
+﻿@inject ConfigService ConfigService;
+
+<CascadingValue Value="@_selectedConfig">
+	<CascadingValue Value="@_currentConfigSet">
+		<ConfigSelector OnItemChanged="@SetConfig"/>
+		<ConfigEditor/>
+	</CascadingValue>
+</CascadingValue>
+
+@code {
+	private ConfigItem _selectedConfig = new("OpenXR-MotionCompensation");
+	private SortedDictionary<string, ConfigSet?> _configSets = new();
+	private ConfigSet? _currentConfigSet;
+
+	public async Task SetConfig(ConfigItem config)
+	{
+		_selectedConfig = config;
+		string name = _selectedConfig.name;
+		if (!_configSets.ContainsKey(name))
+		{
+			_configSets.Add(_selectedConfig.name, ConfigService.GetConfigSet(name));
+		}
+		_currentConfigSet = _configSets[name];
+	}
+}
