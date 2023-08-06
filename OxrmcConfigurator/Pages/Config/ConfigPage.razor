@@ -11,14 +11,17 @@
 	private ConfigItem _selectedConfig = new("OpenXR-MotionCompensation");
 	private SortedDictionary<string, ConfigSet?> _configSets = new();
 	private ConfigSet? _currentConfigSet;
+	private ConfigSet? _defaultConfigSet;
 
 	public async Task SetConfig(ConfigItem config)
 	{
 		_selectedConfig = config;
-		string name = _selectedConfig.name;
+		var name = _selectedConfig.name;
 		if (!_configSets.ContainsKey(name))
 		{
 			_configSets.Add(_selectedConfig.name, ConfigService.GetConfigSet(name));
+			if ("OpenXR-MotionCompensation" == name)
+				_defaultConfigSet = _configSets[name];
 		}
 		_currentConfigSet = _configSets[name];
 	}

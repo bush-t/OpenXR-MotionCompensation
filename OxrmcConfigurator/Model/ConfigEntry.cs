@@ -17,8 +17,8 @@ internal class ConfigEntry
 	private string Application { get; }
 	private string Section { get; }
 	private string Key { get; }
-	private string Value { get; set; }
-	private bool Modified { get; set; }
+	public string Value { get; set; }
+	public bool Modified { get; set; }
 
 	public override string ToString()
 	{

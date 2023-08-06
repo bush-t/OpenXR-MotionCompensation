@@ -35,6 +35,11 @@ internal class ConfigSection
 		}
 	}
 
+	public ConfigEntry? GetEntry(string name)
+	{
+		return _entries.TryGetValue(name, out var entry) ? entry : null;
+	}
+
 	public bool SaveSection()
 	{
 		var success = true;

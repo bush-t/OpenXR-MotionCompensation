@@ -1,0 +1,39 @@
+﻿@using System.Reflection.Metadata
+
+<MudChipSet SelectedValues="@_selected" SelectedValuesChanged="OnSelectedValuesChanged" Mandatory="true" Filter="true">
+	<MudChip Text="Unknown" Style="@(SelectedTracker == ConfigEditor.Tracker.Error ? string.Empty : "display: none")" Value="@ConfigEditor.Tracker.Error" />
+	<MudChip Text="Motion Controller" Value="@ConfigEditor.Tracker.Controller" />
+	<MudChip Text="HTC Vive Tracker" Value="@ConfigEditor.Tracker.Vive"/>
+	<MudChip Text="Sim Racing Studio" Value="@ConfigEditor.Tracker.Srs" />
+	<MudChip Text="FlyPT Mover" Value="@ConfigEditor.Tracker.FlyPt"/>
+	<MudChip Text="Yaw Built-in Sensors" Value="@ConfigEditor.Tracker.Yaw"/>
+</MudChipSet>
+
+@code {
+	[CascadingParameter]
+	public ConfigEditor.Tracker SelectedTracker { get; set; }
+	[CascadingParameter]
+	private ConfigSet? Config { get; set; }
+	[Parameter]
+	public EventCallback<ConfigEditor.Tracker> OnTrackerChanged { get; set; }
+
+	private ICollection<object> _selected = new List<object>() { ConfigEditor.Tracker.Error };
+	
+	
+	protected override void OnParametersSet()
+	{
+		var oldSelection = _selected.First();
+		if ((ConfigEditor.Tracker)oldSelection == SelectedTracker) return;
+		_selected.Clear();
+		_selected.Add(SelectedTracker);
+	}
+
+	private async Task OnSelectedValuesChanged(IEnumerable<object> values)
+	{
+		var enumerable = values.ToList();
+		_selected = enumerable.ToList();
+		if (!OnTrackerChanged.HasDelegate) return;
+		await OnTrackerChanged.InvokeAsync((ConfigEditor.Tracker)enumerable.First());
+		
+	}
+}

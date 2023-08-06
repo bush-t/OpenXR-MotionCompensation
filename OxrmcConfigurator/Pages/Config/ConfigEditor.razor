@@ -1,0 +1,65 @@
+﻿<MudPaper>
+	<CascadingValue Value="@_selectedTracker">
+		<TrackerSelector @ref="_trackerSelector"  OnTrackerChanged="SetTracker"/>
+	</CascadingValue>
+</MudPaper>
+
+@code {
+
+	[CascadingParameter]
+	private ConfigItem? SelectedConfig { get; set; }
+
+	[CascadingParameter]
+	private ConfigSet? Config { get; set; }
+
+	private TrackerSelector? _trackerSelector;
+	private Tracker _selectedTracker;
+	private string? _lastName;
+	private bool _resetTracker = true; // (re)read tracker from config
+
+
+	public enum Tracker : ushort
+	{
+		Error = 0,
+		Controller,
+		Vive,
+		Srs,
+		FlyPt,
+		Yaw
+	}
+
+	public async Task SetTracker(Tracker tracker)
+	{
+		_selectedTracker = tracker;
+	}
+
+	private void GetTrackerFromConfig()
+	{
+		_selectedTracker = Config?.GetSection("tracker")?.GetEntry("type")?.Value switch
+		{
+			("controller") => ConfigEditor.Tracker.Controller,
+			("vive") => ConfigEditor.Tracker.Vive,
+			("srs") => ConfigEditor.Tracker.Srs,
+			("flypt") => ConfigEditor.Tracker.FlyPt,
+			("yaw") => ConfigEditor.Tracker.Yaw,
+			_ => ConfigEditor.Tracker.Error
+			};
+		_trackerSelector = new TrackerSelector();
+		StateHasChanged();
+	}
+
+	protected override void OnParametersSet()
+	{
+		if (_lastName == SelectedConfig?.name) return;
+		_resetTracker = true;
+		_lastName = SelectedConfig?.name;
+	}
+
+	protected override Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!_resetTracker) return base.OnAfterRenderAsync(firstRender);
+		GetTrackerFromConfig();
+		_resetTracker = false;
+		return base.OnAfterRenderAsync(firstRender);
+	}
+}

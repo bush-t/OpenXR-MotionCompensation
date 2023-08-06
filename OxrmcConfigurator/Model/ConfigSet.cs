@@ -26,6 +26,11 @@ internal class ConfigSet
 		}
 	}
 
+	public ConfigSection? GetSection(string name)
+	{
+		return _sections.TryGetValue(name, out var section) ? section : null;
+	}
+
 	public bool SaveSet()
 	{
 		var success = true;
