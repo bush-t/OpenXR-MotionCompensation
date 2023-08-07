@@ -12,13 +12,15 @@ internal class ConfigEntry
 		Key = key;
 		Value = value;
 		Modified = false;
+		Default = false;
 	}
 
-	private string Application { get; }
-	private string Section { get; }
-	private string Key { get; }
+	public string Application { get; }
+	public string Section { get; }
+	public string Key { get; }
 	public string Value { get; set; }
 	public bool Modified { get; set; }
+	public bool Default { get; set; }
 
 	public override string ToString()
 	{

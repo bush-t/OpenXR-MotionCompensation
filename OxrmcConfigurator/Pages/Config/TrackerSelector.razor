@@ -1,4 +1,5 @@
-﻿@using System.Reflection.Metadata
+﻿@using System.Printing
+@inject ConfigService ConfigService;
 
 <MudChipSet SelectedValues="@_selected" SelectedValuesChanged="OnSelectedValuesChanged" Mandatory="true" Filter="true">
 	<MudChip Text="Unknown" Style="@(SelectedTracker == ConfigEditor.Tracker.Error ? string.Empty : "display: none")" Value="@ConfigEditor.Tracker.Error" />
@@ -11,29 +12,68 @@
 
 @code {
 	[CascadingParameter]
-	public ConfigEditor.Tracker SelectedTracker { get; set; }
+	private ConfigItem SelectedConfig { get; set; } = new(ConfigService.defaultApp);
 	[CascadingParameter]
-	private ConfigSet? Config { get; set; }
+	public ConfigEditor.Tracker SelectedTracker { get; set; }
 	[Parameter]
 	public EventCallback<ConfigEditor.Tracker> OnTrackerChanged { get; set; }
 
 	private ICollection<object> _selected = new List<object>() { ConfigEditor.Tracker.Error };
+	private bool _isDefault;
+	private string? _lastName;
+	private bool _ignoreSelectionChange = false;
 	
+	private async Task UpdateTrackerFromConfig()
+	{
+		var trackerEntry = ConfigService.TryGetEntry(SelectedConfig.name, "tracker", "type");
+		_isDefault = trackerEntry?.Default ?? true;
+		var selectedTracker = trackerEntry?.Value switch
+		{
+			("controller") => ConfigEditor.Tracker.Controller,
+			("vive") => ConfigEditor.Tracker.Vive,
+			("srs") => ConfigEditor.Tracker.Srs,
+			("flypt") => ConfigEditor.Tracker.FlyPt,
+			("yaw") => ConfigEditor.Tracker.Yaw,
+			_ => ConfigEditor.Tracker.Error
+		};
+		if (!OnTrackerChanged.HasDelegate) return;
+		await OnTrackerChanged.InvokeAsync(selectedTracker);
+	}	
 	
-	protected override void OnParametersSet()
+	protected override async Task OnParametersSetAsync()
 	{
 		var oldSelection = _selected.First();
-		if ((ConfigEditor.Tracker)oldSelection == SelectedTracker) return;
-		_selected.Clear();
-		_selected.Add(SelectedTracker);
+		if ((ConfigEditor.Tracker)oldSelection != SelectedTracker)
+		{
+			_selected.Clear();
+			_selected.Add(SelectedTracker);
+			_ignoreSelectionChange = true;
+		}
+		if (_lastName == SelectedConfig.name) return;
+		await UpdateTrackerFromConfig();
+		_lastName = SelectedConfig.name;
 	}
 
 	private async Task OnSelectedValuesChanged(IEnumerable<object> values)
 	{
+		if (_ignoreSelectionChange)
+		{
+			_ignoreSelectionChange = false;
+			return;
+		}
 		var enumerable = values.ToList();
 		_selected = enumerable.ToList();
-		if (!OnTrackerChanged.HasDelegate) return;
-		await OnTrackerChanged.InvokeAsync((ConfigEditor.Tracker)enumerable.First());
-		
+		var type = (ConfigEditor.Tracker)enumerable.First() switch
+		{
+			ConfigEditor.Tracker.Controller => "controller",
+			ConfigEditor.Tracker.Vive => "vive",
+			ConfigEditor.Tracker.Srs => "srs",
+			ConfigEditor.Tracker.FlyPt => "flypt",
+			ConfigEditor.Tracker.Yaw => "yaw",
+			ConfigEditor.Tracker.Error => "unknown", // TODO: handle error?
+			_ => "unknown"
+			};
+		ConfigService.SetEntry(SelectedConfig.name, "tracker", "type", type);
+		await UpdateTrackerFromConfig();
 	}
 }

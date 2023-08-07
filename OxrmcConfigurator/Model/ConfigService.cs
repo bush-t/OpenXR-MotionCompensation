@@ -12,6 +12,8 @@ internal class ConfigService
 	public static string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) +
 	                                   @"\OpenXR-MotionCompensation\";
 
+	public static string defaultApp = "OpenXR-MotionCompensation";
+
 	private readonly SortedDictionary<string, ConfigSet> _configSets = new();
 
 	public ConfigService()
@@ -47,7 +49,29 @@ internal class ConfigService
 		return new List<string>();
 	}
 
-	public ConfigSet? GetConfigSet(string name)
+	public ConfigEntry? TryGetEntry(string application, string section, string key)
+	{
+		var entry = TryGetConfigSet(application)?.TryGetSection(section)?.TryGetEntry(key);
+		if (null != entry) return entry;
+		entry = TryGetConfigSet(defaultApp)?.TryGetSection(section)?.TryGetEntry(key);
+		if (entry != null)
+		{
+			entry.Default = true;
+		}
+		return entry;
+	}
+
+	public void SetEntry(string application, string sectionName, string key, string value)
+	{
+		ConfigEntry entry = new(application, sectionName, key, value);
+		entry.Modified = true;
+
+		ConfigSet set = _configSets.TryGetValue(application, out var configSet) ? configSet : new ConfigSet(application);
+		set.SetEntry(entry);
+		_configSets[application] = set;
+	}
+
+	private ConfigSet? TryGetConfigSet(string name)
 	{
 		return _configSets.TryGetValue(name, out var configSet) ? configSet : null;
 	}

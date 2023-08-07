@@ -7,28 +7,39 @@ namespace OxrmcConfigurator.Model;
 
 internal class ConfigSet
 {
+	public string Application { get; set; }
 	private readonly SortedDictionary<string, ConfigSection> _sections;
 
 	public ConfigSet(string application)
 	{
+		Application = application;
 		_sections = new SortedDictionary<string, ConfigSection>();
-		ParseConfigFile(application);
+		ParseConfigFile();
 	}
 
-	public void ParseConfigFile(string application)
+	public void ParseConfigFile()
 	{
 		var parser = new FileIniDataParser();
-		string path = ConfigService.appDataPath + application + ".ini";
-		IniData _data = parser.ReadFile(path);
-		foreach (var section in _data.Sections)
+		var path = ConfigService.appDataPath + Application + ".ini";
+		var data = parser.ReadFile(path);
+		foreach (var sectionData in data.Sections)
 		{
-			_sections.Add(section.SectionName, new ConfigSection(application, section));
+			ConfigSection section = new(Application);
+			section.ParseSection(sectionData);
+			_sections.Add(sectionData.SectionName, section);
 		}
 	}
 
-	public ConfigSection? GetSection(string name)
+	public ConfigSection? TryGetSection(string name)
 	{
 		return _sections.TryGetValue(name, out var section) ? section : null;
+	}
+
+	public void SetEntry(ConfigEntry entry)
+	{
+		ConfigSection section = _sections.TryGetValue(entry.Section, out var configSection) ? configSection : new ConfigSection(Application);
+		section.SetEntry(entry);
+		_sections[entry.Section] = section;
 	}
 
 	public bool SaveSet()
@@ -38,7 +49,6 @@ internal class ConfigSet
 		{
 			success = false;
 		}
-
 		return success;
 	}
 }

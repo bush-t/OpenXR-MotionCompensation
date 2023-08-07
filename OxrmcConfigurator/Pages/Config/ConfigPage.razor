@@ -1,28 +1,15 @@
 ﻿@inject ConfigService ConfigService;
 
 <CascadingValue Value="@_selectedConfig">
-	<CascadingValue Value="@_currentConfigSet">
-		<ConfigSelector OnItemChanged="@SetConfig"/>
-		<ConfigEditor/>
-	</CascadingValue>
+	<ConfigSelector OnItemChanged="@SetConfig"/>
+	<ConfigEditor/>
 </CascadingValue>
 
 @code {
-	private ConfigItem _selectedConfig = new("OpenXR-MotionCompensation");
-	private SortedDictionary<string, ConfigSet?> _configSets = new();
-	private ConfigSet? _currentConfigSet;
-	private ConfigSet? _defaultConfigSet;
+	private ConfigItem _selectedConfig = new(Model.ConfigService.defaultApp);
 
 	public async Task SetConfig(ConfigItem config)
 	{
 		_selectedConfig = config;
-		var name = _selectedConfig.name;
-		if (!_configSets.ContainsKey(name))
-		{
-			_configSets.Add(_selectedConfig.name, ConfigService.GetConfigSet(name));
-			if ("OpenXR-MotionCompensation" == name)
-				_defaultConfigSet = _configSets[name];
-		}
-		_currentConfigSet = _configSets[name];
 	}
 }

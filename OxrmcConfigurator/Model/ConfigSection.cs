@@ -8,16 +8,15 @@ namespace OxrmcConfigurator.Model;
 
 internal class ConfigSection
 {
-	public ConfigSection(string application, SectionData section)
+	public ConfigSection(string application)
 	{
+		Application = application;
 		_entries = new SortedDictionary<string, ConfigEntry>();
-		ParseSection(application, section);
 	}
-
-
+	public string Application { get; set; }
 	private SortedDictionary<string, ConfigEntry> _entries;
 
-	void ParseSection(string application, SectionData section)
+	public void ParseSection(SectionData section)
 	{
 		var sectionName = section.SectionName;
 		ConfigEntry entry = new ConfigEntry("", "", "", "");
@@ -25,7 +24,7 @@ internal class ConfigSection
 		{
 			foreach (var key in section.Keys)
 			{
-				entry = new ConfigEntry(application, sectionName, key.KeyName, key.Value);
+				entry = new ConfigEntry(Application, sectionName, key.KeyName, key.Value);
 				_entries.Add(key.KeyName, entry);
 			}
 		}
@@ -35,9 +34,14 @@ internal class ConfigSection
 		}
 	}
 
-	public ConfigEntry? GetEntry(string name)
+	public ConfigEntry? TryGetEntry(string name)
 	{
 		return _entries.TryGetValue(name, out var entry) ? entry : null;
+	}
+
+	public void SetEntry(ConfigEntry entry)
+	{
+		_entries[entry.Key] = entry;
 	}
 
 	public bool SaveSection()
