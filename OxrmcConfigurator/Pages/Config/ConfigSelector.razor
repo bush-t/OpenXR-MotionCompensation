@@ -1,35 +1,46 @@
 ﻿@using OxrmcConfigurator.Model
+@using System.Text
 
 @inject ConfigService ConfigService;
+<MudPaper Class="d-flex flex-row" >
+	<MudItem>
+		<MudSelect T="ConfigItem"
+		           Value="@SelectedItem"
+		           ValueChanged="OnValueChanged"
+		           Label="Configuration"
+		           Variant="Variant.Filled"
+		           AnchorOrigin="Origin.BottomCenter"
+		           Class="flex-auto d-flex">
+			<MudSelectItem Value="_defaultItem"/>
+			@foreach (ConfigItem app in _applicationsList)
+			{
+				<MudSelectItem Value="@app" Style="@GetStyle(@app)" />
+			}
+		</MudSelect>
+	</MudItem>
+	<MudItem>
+		<MudTooltip Delay="500" Text="Reload config files in appdata directory" Placement="Placement.Left">
+			<MudIconButton Class="flex-none mud-theme-primary" Icon="@Icons.Material.Filled.Refresh" OnClick="ReloadConfigFiles"/>
+		</MudTooltip>
+	</MudItem>
+</MudPaper>
+	
 
-<MudSelect T="ConfigItem"
-           Value = "@SelectedItem"
-           ValueChanged="OnValueChanged"
-           Label="Configuration"
-           Variant="Variant.Filled"
-           AnchorOrigin="Origin.BottomCenter">
-	<MudSelectItem Value="_defaultItem" />
-	@foreach (ConfigItem app in _applicationsList)
-	{
-		<MudSelectItem Value="@app"/>
-	}
-</MudSelect>
-
-
-@if (SelectedItem is not null)
-{
-	<br/>
-	<MudAlert Severity="Severity.Info">@(SelectedItem.name) was selected</MudAlert>
-}
+	
 
 @code {
 
 	[Parameter]
 	public EventCallback<ConfigItem> OnItemChanged { get; set; }
 
-	private ConfigItem? SelectedItem { get; set; }
-	private static ConfigItem _defaultItem = new("OpenXR-MotionCompensation");
+	private ConfigItem SelectedItem { get; set; } = new("");
+	private static ConfigItem _defaultItem = new(Model.ConfigService.defaultApp);
 	private List<ConfigItem> _applicationsList = new();
+
+	private string GetStyle(ConfigItem item)
+	{
+		return ConfigService.IsModified(item.name) ? "border: 2px solid red" : "";
+	}
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -54,6 +65,17 @@
 			await OnItemChanged.InvokeAsync(selected);
 		}
 	}
+
+	private async Task ReloadConfigFiles()
+	{
+		ConfigService.ParseConfigFiles();
+		_applicationsList = GetSortedNames();
+		await OnValueChanged(new ConfigItem(""));
+		if (_applicationsList.Any())
+			await OnValueChanged(_defaultItem);
+	}
+
+
 
 	// TODO: update list on delete and add refresh button
 

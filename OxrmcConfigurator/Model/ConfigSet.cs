@@ -41,7 +41,10 @@ internal class ConfigSet
 		section.SetEntry(entry);
 		_sections[entry.Section] = section;
 	}
-
+	public bool IsModified()
+	{
+		return _sections.Values.Any(section => section.IsModified());
+	}
 	public bool SaveSet()
 	{
 		var success = true;
@@ -51,4 +54,6 @@ internal class ConfigSet
 		}
 		return success;
 	}
+
+
 }

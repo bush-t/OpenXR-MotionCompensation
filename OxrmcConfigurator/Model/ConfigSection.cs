@@ -43,6 +43,10 @@ internal class ConfigSection
 	{
 		_entries[entry.Key] = entry;
 	}
+	public bool IsModified()
+	{
+		return _entries.Values.Any(entry => entry.Modified);
+	}
 
 	public bool SaveSection()
 	{

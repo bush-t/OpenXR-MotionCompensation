@@ -11,7 +11,7 @@ public class ConfigItem
 
 	private static string GetDisplayName(string configName)
 	{
-		if (configName == "OpenXR-MotionCompensation")
+		if (configName == ConfigService.defaultApp)
 			return "Default";
 		if (configName.StartsWith("OpenComposite_"))
 			return configName["OpenComposite_".Length..] + " (OC)";

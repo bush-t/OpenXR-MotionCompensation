@@ -25,7 +25,9 @@
 	
 	private async Task UpdateTrackerFromConfig()
 	{
-		var trackerEntry = ConfigService.TryGetEntry(SelectedConfig.name, "tracker", "type");
+		var trackerEntry = ("" == SelectedConfig.name) 
+			? new ConfigEntry("", "", "", "") 
+			: ConfigService.TryGetEntry(SelectedConfig.name, "tracker", "type");
 		_isDefault = trackerEntry?.Default ?? true;
 		var selectedTracker = trackerEntry?.Value switch
 		{

@@ -27,11 +27,18 @@ internal class ConfigService
 	public void ParseConfigFiles()
 	{
 		_configSets.Clear();
-		foreach (var file in Directory.GetFiles(appDataPath, "*.ini"))
+		try
 		{
-			var application = Path.GetFileName(file);
-			application = application[..application.LastIndexOf('.')];
-			_configSets.Add(application, new ConfigSet(application));
+			foreach (var file in Directory.GetFiles(appDataPath, "*.ini"))
+			{
+				var application = Path.GetFileName(file);
+				application = application[..application.LastIndexOf('.')];
+				_configSets.Add(application, new ConfigSet(application));
+			}
+		}
+		catch (Exception ex)
+		{
+			Log.Error("unable to find config files at " + appDataPath + " - " + ex.Message);
 		}
 	}
 
@@ -40,7 +47,7 @@ internal class ConfigService
 		var configs = _configSets.Keys.ToList();
 		for (int i = 0; i < configs.Count; i++)
 		{
-			if (!configs[i].Equals("OpenXR-MotionCompensation")) continue;
+			if (!configs[i].Equals(defaultApp)) continue;
 			configs.RemoveAt(i);
 			return configs;
 		}
@@ -74,6 +81,12 @@ internal class ConfigService
 	private ConfigSet? TryGetConfigSet(string name)
 	{
 		return _configSets.TryGetValue(name, out var configSet) ? configSet : null;
+	}
+
+	public bool IsModified(string application)
+	{
+		_configSets.TryGetValue(application, out var configSet);
+		return null != configSet && configSet.IsModified();
 	}
 
 	public bool SaveConfigSet(string name, ref ConfigSet configSet)
